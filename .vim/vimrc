@@ -1,0 +1,197 @@
+call plug#begin('~/.vim/plugged')
+
+" Plugins {
+
+" Color Scheme
+Plug 'morhetz/gruvbox'
+    
+" }
+
+call plug#end()
+
+" Configuration {
+
+	" search
+	set hlsearch				" highlight matches
+	set incsearch				" highlight partial matches
+
+	" formatting
+	set linespace=0				" set line-spacing to a minimum
+	set nojoinspaces			" don't insert two spaces after punctuation on a join (J)
+	set textwidth=0				" hard-wrap long lines as you type them (default=0)
+
+	" spaces, tabs, & indentation
+	set softtabstop=4			" insert this many spaces when inserting tab
+	set expandtab				" insert spaces in place of tab
+	set smarttab				" insert tabs according to shiftwidth
+	set shiftwidth=4			" indentation amount for < and > commands
+	set shiftround				" round indent to multiple of shiftwidth/tabstop
+	set autoindent				" indent new line to indentation level of previous
+	set smartindent				" ...and according to smartindent rules (:help smartindent)
+
+	" ui options				
+	set number				" show line numbers on the left side
+	set ruler				" show the line and column of the cursor
+	set background=dark
+	set showcmd				" show partial command in status line
+	set showmatch				" show matching brackets (seems to be on by default, although noshowmatch is set)	
+	let &showbreak='⤷   ' 	                " string to display when line is wrapped
+"	set noshowmode				" don't show current mode (airline does this)
+	set cursorline				" highlight the line cursor is on
+        " set i-beam in insert mode, block otherwise
+        let &t_SI = "\<Esc>[6 q"
+        let &t_SR = "\<Esc>[4 q"
+        let &t_EI = "\<Esc>[2 q"
+
+        " general
+	set mouse=a				" enable mouse in all modes
+	set cpoptions+=n			" display showbreak string in line number gutter
+	set noerrorbells			" no beeps
+	set modeline				" enable modeline
+        set ttimeout                            " enable timeout on key codes
+        set ttimeoutlen=10                      " set timeout to 100th of a second
+
+        " gui options
+        set guicursor-=a:blinkon0               " turn off 	
+
+	" allow color schemes to do bright colors without forcing bold
+	set termguicolors
+
+	" more natural splits
+	set splitbelow				" prefer horizontal splits below cursor
+	set splitright				" prefer vertical splits right of cursor
+	
+	if !&scrolloff
+		set scrolloff=3			" keep 3 lines between cursor and top/bottom of screen while scrolling
+	endif
+	if !&sidescrolloff
+		set sidescrolloff=5		" keep 5 lines between cursor and right/left edge of screen when side scrolling
+	endif
+
+	set nostartofline			" do not jump to first character with page commands
+
+
+        " characters to be displayed for tab, whitespace, eol, etc.
+        set listchars=tab:▸\ ,trail:·,extends:»,precedes:«,nbsp:˔,eol:¬
+	" show problematic characters.
+	nmap <Leader>l :set list!<CR>
+        
+        " path/file options
+	set autoread				" if file updates outside of vim, automatically load
+        set exrc                                " allow vim to source project local .vimrc
+        set secure                              " dont allow certain actions in local .vimrc
+
+	"set autochdir				" switch to current buffer's parent directory
+	set hidden				" allow unsaved buffers to hide in the background
+
+	" remove special characters for filename
+	set isfname-=:
+       	set isfname-==
+	set isfname-=+
+
+	" path/file expansion in ex mode
+        set path+=**
+	set wildmenu				" enhanced command-line completion
+"	set wildmode=list:longest		" list all matches when more than one match
+"	set wildchar=<TAB>			" completion character for wildmenu (default=<TAB>)
+	
+	set completeopt-=preview		" no scratch window on completion
+
+
+	" diff options
+	set diffopt+=vertical
+" }
+	
+" Keybindings {
+
+	" map the leader key to <space>
+	let mapleader="\<SPACE>"
+
+	" use <c-l> to clear the highlighting of :set hlsearch
+	if maparg('<C-l>', 'n') ==# ''
+		nnoremap <silent> <C-l> :nohlsearch<CR><C-l>
+	endif
+
+	" stop cursor from jumping over wrapped lines
+	nnoremap j gj
+	nnoremap k gk
+	
+	" relative numbering
+	function! NumberToggle()
+		if(&relativenumber == 1)
+			set nornu
+			set number
+		else
+			set rnu
+		endif
+	endfunc
+
+	" toggle between normal and relative numbering
+	nnoremap <Leader>r :call NumberToggle()<CR>
+
+	" save file
+	nnoremap <Leader>w :w<CR>
+	
+	" copy/paste from system clipboard
+	vmap <Leader>y "+y
+	vmap <Leader>d "+d
+	nmap <Leader>p "+p
+	nmap <Leader>P "+P
+	vmap <Leader>p "+p
+	vmap <Leader>P "+P
+
+	" shift line/selection up/down
+	nnoremap <A-j> :m .+1<CR>==
+	nnoremap <A-k> :m .-2<CR>=
+	inoremap <A-j> <ESC>:m .+1<CR>==gi:
+	inoremap <A-k> <ESC>:m .-2<CR>==gi
+	vnoremap <A-j> :m '>+1<CR>gv=gv
+	vnoremap <A-k> :m '<-2<CR>gv=gv
+
+        " edit/source .vimrc
+        nmap <Leader>ev :e $MYVIMRC<CR>
+        nmap <Leader>sv :so $MYVIMRC<CR>
+" }
+
+" Commands/Functions {
+
+function! RestoreBase16TerminalTheme()
+    if $BASE16_THEME != ""
+        execute "silent !/bin/sh ~/.config/base16-shell/scripts/base16-".$BASE16_THEME.".sh"
+    endif
+endfunction
+
+" this to be called to sync gruvbox theme with terminal theme
+function! SetupGruvboxTheme(options)
+    " set gruvbox contrast options
+    if a:options[0] ==# 'dark'
+        let g:gruvbox_contrast_dark = a:options[1]
+    elseif a:options[0] ==# 'light'
+        let g:gruvbox_contrast_light = a:options[1]
+    else
+        " return if options not recognized
+        return
+    endif " no need to handle fail case, vim will output error during parse
+    " set terminal colorscheme to match vim colorscheme
+    execute 'silent !/bin/sh ~/.config/base16-shell/scripts/base16-gruvbox-'.a:options[0].'-'.a:options[1].'.sh'
+endfunction
+
+augroup VimStartup
+    au!
+    " don't continue comment marker on new line or after hitting o/O for any filetype
+    au FileType * set fo-=r fo-=o
+    
+    " only set this if gruvbox theme is set
+    au VimLeavePre * call RestoreBase16TerminalTheme()
+" }
+
+" Plugin Options {
+
+" gruvbox
+" set gruvbox dark/light, contrast, and sync terminal theme
+call SetupGruvboxTheme(["dark","medium"])
+let g:gruvbox_italic=1
+let g:gruvbox_invert_selection=0
+colorscheme gruvbox
+" }
+
